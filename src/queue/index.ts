@@ -10,8 +10,9 @@ class RoomQueue {
     if (this.queueList[hash]) return
 
     this.queueList[hash] = new Queue({
-      interval: 100,
-      concurrent: 30
+      interval: 1,
+      concurrent: 999,
+      start: true
     })
   }
   
@@ -19,8 +20,8 @@ class RoomQueue {
     const queue = this.queueList[hash]
 
     if (!queue) return
-
-    queue.enqueue(() => new Promise((resolver) => func(resolver)))
+    
+    queue.enqueue(() => new Promise((resolver) => func(resolver, queue.uniqueId)))
   }
 }
 

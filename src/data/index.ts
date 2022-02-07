@@ -22,6 +22,8 @@ const configureDatabase = async ({ ENV }: ModelsType): Promise<DataBaseType>  =>
     gameMode: { type: String, default: 'catching' },
     owner: { type: Object, require: true },
     currentCard: { type: Array, default: [] },
+    finalTime: { type: Date, default: Date.now },
+    matchDuration: { type: Number, default: 1000 * 60 * 2 },
     createdAt: { type: Date, default: Date.now }
   })
 

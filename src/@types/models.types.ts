@@ -7,5 +7,7 @@ export interface RoomSchemaTypes {
   gameMode: string;
   owner: any;
   currentCard: any
+  finalTime: Date,
+  matchDuration: number
   createdAt: Date;
 }
