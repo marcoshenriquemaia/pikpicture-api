@@ -10,8 +10,9 @@ const disconnectRoom = (deps: DepsTypes, socket: any, roomQueue: RoomQueue, io: 
 
     if (!room) return;
 
-    await socket.join(room.hash);
+    await socket.leave(room.hash);
     await socket.broadcast.to(room.hash).emit("userDisconnect", room);
+    await socket.disconnect()
   };
 };
 

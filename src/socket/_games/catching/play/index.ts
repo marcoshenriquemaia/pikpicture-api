@@ -1,3 +1,4 @@
+import { PlayerProps } from "../../../../@types/env.types"
 import RoomService from "../../../../app/services/room"
 import { DepsTypes } from "../../../../presentation/types"
 import RoomQueue from "../../../../queue"
@@ -11,16 +12,42 @@ const play = (socket: any, deps: DepsTypes, roomQueue: RoomQueue, io: any) => {
     roomQueue.enqueue(`catching_play_${room}`, async (queueResolver: Function, taskQuantity: number) => {
       const currentRoom = await roomService.getByHash(room)
 
-      const won = verifyPlay({ play, currentCard: currentRoom.currentCard })
+      const player = currentRoom.playerList.find((item: PlayerProps) => {
+        return item.socketId === socket.id
+      })
 
-      if (won) {
-        const updatedRoom = await roomService.catching_won({ socketId: socket.id })
-        io.sockets.in(room).emit('catching_won')
+      if (player.punishmentTime && (new Date(player.punishmentTime).getTime() > new Date().getTime())) return await queueResolver()
+
+      const won = verifyPlay({ play, currentCard: player.card })
+
+      if (!won) {
+        const updatedRoom: any = await roomService.catching_miss({ socketId: socket.id, room: currentRoom })
+        
+        const currentPlayer = updatedRoom.playerList.find((p: PlayerProps) => p.socketId === socket.id)
+
+        setTimeout(() => {
+          io.sockets.in(room).emit('catching_punishmentTimeEnd', { room: updatedRoom })
+          socket.emit('catching_userPunishmentTimeEnd', { room: updatedRoom, user: currentPlayer })
+        }, 3000)
+
+        console.log('catching_miss')
+        
+        io.sockets.in(room).emit('catching_miss', { room: updatedRoom })
+        socket.emit('catching_userMiss', { room: updatedRoom, user: currentPlayer })
       }
 
-      console.log('won', won);
+      if (won) {
+        const updatedRoom: any = await roomService.catching_won({ socketId: socket.id, room: currentRoom })
 
-      queueResolver && queueResolver()
+        const currentPlayer = updatedRoom.playerList.find((p: PlayerProps) => p.socketId === socket.id)
+
+        console.log('catching_hit')
+
+        io.sockets.in(room).emit('catching_hit', { room: updatedRoom, user: currentPlayer })
+        socket.emit('catching_userHit', { room: updatedRoom, user: currentPlayer })
+      }
+
+      queueResolver && await queueResolver()
     })
   }
 }

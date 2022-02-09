@@ -2,8 +2,15 @@ import { Request } from "express";
 import Repository from "../../../data/repositories/_abstract";
 import { DepsTypes } from "../../../presentation/types";
 import generageToken from "../../../utils/generateToken";
-import { Catching_wonProps, changeReadyStatusPlayer, JoinPlayerProps } from "./types";
+import {
+  Catching_wonProps,
+  changeReadyStatusPlayer,
+  JoinPlayerProps,
+} from "./types";
 import { PlayerProps } from "../../../@types/env.types";
+import getCard from "../../../gameOperations/getCard";
+import AppError from "../../../errors/AppError";
+import { RoomSchemaTypes } from "../../../@types/models.types";
 
 class RoomService {
   roomRepository: Repository;
@@ -25,10 +32,85 @@ class RoomService {
     return room;
   }
 
-  async catching_won({ socketId }: Catching_wonProps) {
-    console.log(socketId)
+  async restartGame(room: RoomSchemaTypes) {
+    const newPlayerList = room.playerList.map((player: PlayerProps) => {
+      return {
+        ...player,
+        card: [],
+        points: 0,
+        ready: false,
+      };
+    });
+
+    const restartedRoom = await this.roomRepository.update(
+      {
+        hash: room.hash,
+      },
+      {
+        playerList: newPlayerList,
+        started: false,
+        currentCard: [],
+        finalTime: undefined,
+      },
+      {
+        returnOriginal: false,
+      }
+    );
+
+    return restartedRoom;
   }
-  
+
+  async catching_miss({ socketId, room }: Catching_wonProps) {
+    const newPlayerList = room.playerList.map((player: PlayerProps) => {
+      if (player.socketId != socketId) return player;
+      return {
+        ...player,
+        punishmentTime: new Date(new Date().getTime() + 3000),
+        punishmentTimeInSecond: 3,
+      };
+    });
+
+    return await this.roomRepository.update(
+      {
+        _id: room._id,
+      },
+      {
+        playerList: newPlayerList.sort((a: PlayerProps, b: PlayerProps) => {
+          return a.points - b.points
+        }).reverse(),
+      },
+      {
+        returnOriginal: false,
+      }
+    );
+  }
+
+  async catching_won({ socketId, room }: Catching_wonProps) {
+    const newPlayerList = room.playerList.map((player: PlayerProps) => {
+      if (player.socketId != socketId) return player;
+      return {
+        ...player,
+        points: player.points + 1,
+        card: room.currentCard,
+      };
+    });
+
+    return await this.roomRepository.update(
+      {
+        _id: room._id,
+      },
+      {
+        currentCard: getCard(room),
+        playerList: newPlayerList.sort((a: PlayerProps, b: PlayerProps) => {
+          return a.points - b.points
+        }).reverse(),
+      },
+      {
+        returnOriginal: false,
+      }
+    );
+  }
+
   async disconnectPlayer(socketId: string) {
     const roomList = await this.roomRepository.list();
 
@@ -47,7 +129,9 @@ class RoomService {
       {
         playerList: room.playerList?.filter(
           (player: PlayerProps) => player.socketId !== socketId
-        ),
+        ).sort((a: PlayerProps, b: PlayerProps) => {
+          return a.points - b.points
+        }).reverse(),
       },
       {
         returnOriginal: false,
@@ -60,11 +144,11 @@ class RoomService {
   async startGame(newRoom: any) {
     const room = await this.roomRepository.update(
       { hash: newRoom.hash },
-      { ...newRoom},
+      { ...newRoom },
       { returnOriginal: false }
     );
 
-    return room
+    return room;
   }
 
   async changeReadyStatusPlayer({
@@ -97,21 +181,26 @@ class RoomService {
   async joinPlayer({ room, player, returnCurrent }: JoinPlayerProps) {
     const currentRoom = await this.roomRepository.get({ hash: room });
 
-    if (!currentRoom) return false
+    if (!currentRoom) throw new AppError("Not found", 404);
+
+    if (currentRoom.started)
+      throw new AppError("The game is already started", 401);
+    if (currentRoom.playerList.length >= 10)
+      throw new AppError("Full room", 403);
 
     if (
       currentRoom.playerList.some((item: any) => item.userId === player.userId)
     )
       return false;
 
-    if (returnCurrent) return currentRoom
+    if (returnCurrent) return currentRoom;
 
     return await this.roomRepository.update(
       {
         hash: room,
       },
       {
-        playerList: [...currentRoom.playerList, {...player, ready: false}],
+        playerList: [...currentRoom.playerList, { ...player, ready: false }],
       },
       {
         returnOriginal: false,

@@ -11,22 +11,25 @@ const joinRoom = (deps: DepsTypes, socket: any, roomQueue: RoomQueue, io: any) =
 
       if (currentRoom.started) {
         socket.emit('errorJoin', { message: 'Game Started' })
+        socket.emit('leaveRoom')
         return await queueResolver()
       }
 
-      const updatedRoom: any = await roomService.joinPlayer({ room: data.room, player: {
+      const newUser = {
         playerName: data.playerName,
         userId: data.userId,
         card: [],
         ready: false,
         socketId: socket.id,
-        points: 0
-      }})
+        points: 0,
+        avatar: currentRoom.playerList.length
+      }
 
-      console.log('Join');
-      
+      const updatedRoom: any = await roomService.joinPlayer({ room: data.room, player: newUser })
+
       updatedRoom && await socket.join(data.room)
       updatedRoom && await io.sockets.in(data.room).emit('userJoined', updatedRoom )
+      updatedRoom && await socket.emit('userInfo', { user: newUser } )
       queueResolver && updatedRoom && await queueResolver()
     })
   }

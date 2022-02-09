@@ -11,8 +11,8 @@ const disconnect = (deps: DepsTypes, socket: any, roomQueue: RoomQueue, io: any)
     if (!room) return;
     
     console.log('Disconnect')
-
-    await socket.join(room.hash);
+    
+    await socket.leave(room.hash);
     await socket.broadcast.to(room.hash).emit("userDisconnect", room);
   };
 };

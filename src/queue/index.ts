@@ -11,7 +11,7 @@ class RoomQueue {
 
     this.queueList[hash] = new Queue({
       interval: 1,
-      concurrent: 999,
+      concurrent: 1,
       start: true
     })
   }

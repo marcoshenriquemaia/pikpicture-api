@@ -1,15 +1,37 @@
 import fs from 'fs'
 import path from 'path'
+import { PlayerProps } from '../@types/env.types';
+import { RoomSchemaTypes } from '../@types/models.types';
+import play from '../socket/_games/catching/play';
 
-const cardList = JSON.parse(
+const { cardList } = JSON.parse(
   fs.readFileSync(path.join(__dirname, "../mock/cardList.json"), {
     encoding: "utf8",
     flag: "r",
   })
 );
 
-const getCard = ({ playerList }) => {
+const getCard = (room: RoomSchemaTypes) => {
+  const roomCards = [room.currentCard, ...room.playerList.map((player: PlayerProps) => player.card)]
+  let found = false
+  let foundedCard: any
+
+  while(!found) {
+    const randomNumber = Math.floor(Math.random() * cardList.length)
+    const card = cardList[randomNumber]
+    const foundEqual = roomCards.some((item => {
+      const cardListStringfy = JSON.stringify(item.map((c: any) => c.category))
+
+      return JSON.stringify(card.map((c: any) => c.category)) === cardListStringfy
+    }))
+
+    if (!foundEqual) {
+      foundedCard = card
+      found = true
+    }
+  }
   
+  return foundedCard
 }
 
 export default getCard

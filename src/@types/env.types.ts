@@ -16,4 +16,7 @@ export interface PlayerProps {
   points: number
   ready: boolean
   socketId: string
+  punishmentTime?: Date 
+  punishmentTimeInSecond?: number 
+  avatar: number
 }

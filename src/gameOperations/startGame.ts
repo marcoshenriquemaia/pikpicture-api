@@ -19,11 +19,14 @@ const startGame = ({ room }: StartGameProps) => {
       card: cardList[cardIndexList[index + 1]]
     }
   })
-
+  
   return {
     playerList: updatedPlayers,
-    startGame: true,
-    currentCard: cardList[cardIndexList[0]],
+    started: true,
+    currentCard: cardList[cardIndexList[0]].map((card: any) => ({
+      ...card,
+      scale: (100 - Math.floor(Math.random() * 50)) / 100
+    })),
     hash: room.hash
   }
 }

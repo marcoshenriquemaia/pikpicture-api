@@ -7,7 +7,7 @@ const generateUniqueNumbers = (quantity: number, limit: number) => {
     if (!numberList.includes(randomNumber)) numberList.push(randomNumber)
   }
 
-  return numberList.sort((a,b) => a - b)
+  return numberList
 }
 
 export default generateUniqueNumbers

@@ -1,4 +1,5 @@
 import { PlayerProps } from "../../../@types/env.types";
+import { RoomSchemaTypes } from "../../../@types/models.types";
 
 export interface JoinPlayerProps {
   room: string
@@ -14,4 +15,5 @@ export interface changeReadyStatusPlayer {
 
 export interface Catching_wonProps {
   socketId: string
+  room: RoomSchemaTypes
 }
