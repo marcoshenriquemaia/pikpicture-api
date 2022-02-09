@@ -2,11 +2,11 @@ import { connect, Schema, model, Model } from 'mongoose'
 import { EnvTypes } from '../@types/env.types'
 import { RoomSchemaTypes } from '../@types/models.types'
 
-export interface ModelsType{
+export interface ModelsType {
   ENV: EnvTypes
 }
 
-export interface DataBaseType{
+export interface DataBaseType {
   Room: Model<RoomSchemaTypes>
 }
 
