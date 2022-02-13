@@ -11,6 +11,7 @@ import { PlayerProps } from "../../../@types/env.types";
 import getCard from "../../../gameOperations/getCard";
 import AppError from "../../../errors/AppError";
 import { RoomSchemaTypes } from "../../../@types/models.types";
+import RoomQueue from "../../../queue";
 
 class RoomService {
   roomRepository: Repository;
@@ -20,7 +21,7 @@ class RoomService {
     this.deps = deps;
   }
 
-  async create(req: Request) {
+  async create(req: Request, roomQueue: RoomQueue) {
     const { playerName, userId } = req.body;
     const hash = generageToken(6);
 
@@ -28,6 +29,10 @@ class RoomService {
       hash,
       owner: { playerName, userId },
     });
+
+    roomQueue.createQueue(`play_${hash}`, { concurrent: 1, interval: 100 })
+    roomQueue.createQueue(`readyStatusChange_${hash}`);
+    roomQueue.createQueue(`joinRoom_${hash}`)
 
     return room;
   }
@@ -100,7 +105,7 @@ class RoomService {
         _id: room._id,
       },
       {
-        currentCard: getCard(room),
+        currentCard: await getCard(room),
         playerList: newPlayerList.sort((a: PlayerProps, b: PlayerProps) => {
           return a.points - b.points
         }).reverse(),
@@ -185,7 +190,7 @@ class RoomService {
 
     if (currentRoom.started)
       throw new AppError("The game is already started", 401);
-    if (currentRoom.playerList.length >= 10)
+    if (currentRoom.playerList.length >= 100)
       throw new AppError("Full room", 403);
 
     if (
@@ -206,6 +211,10 @@ class RoomService {
         returnOriginal: false,
       }
     );
+  }
+
+  async delete(_id: string){
+    return await this.roomRepository.delete(_id)
   }
 
   async update(criteria: any, data: any) {

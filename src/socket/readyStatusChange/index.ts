@@ -1,9 +1,9 @@
 import { PlayerProps } from "../../@types/env.types";
 import RoomService from "../../app/services/room";
 import startGame from "../../gameOperations/startGame";
+import { GAME, ROOM, USER } from "../../mock/events";
 import { DepsTypes } from "../../presentation/types";
 import RoomQueue from "../../queue";
-import play from "../_games/catching/play";
 
 const readyStatusChange = (
   deps: DepsTypes,
@@ -13,13 +13,12 @@ const readyStatusChange = (
 ) => {
   const roomService = new RoomService(deps);
   return async (data: any) => {
-    roomQueue.createQueue(`readyStatusChange_${data.room}`);
     roomQueue.enqueue(
       `readyStatusChange_${data.room}`,
-      async (queueResolver: Function) => {
+      async (queueResolver: Function, queueQuantity: number) => {
         const currentRoom = await roomService.getByHash(data.room)
 
-        if (currentRoom.started) return
+        if (currentRoom.started) return await queueResolver()
                 
         const updatedRoom: any = await roomService.changeReadyStatusPlayer({
           playerId: data.userId,
@@ -27,7 +26,7 @@ const readyStatusChange = (
           room: data.room,
         });
 
-        io.sockets.in(updatedRoom.hash).emit('userStatusReadyChange', updatedRoom)
+        io.sockets.in(updatedRoom.hash).emit(ROOM.STATUS, updatedRoom)
 
         const [readyQuantity] = updatedRoom.playerList.reduce(
           (acc: number[], player: PlayerProps) => {
@@ -43,21 +42,27 @@ const readyStatusChange = (
 
         const updatedDbRoom: any = await roomService.startGame(newRoom)
 
+        const clientList = io.sockets.adapter.rooms.get(data.room)
         
         //todo
-        io.sockets.sockets.forEach((skt: any) => {
+        clientList.forEach((socketId: any) => {
           const user = updatedDbRoom.playerList.find((player: any) => {
-            return player.socketId === skt.id
+            return player.socketId === socketId
           })
+
+          const clientListSocket = io.sockets.sockets.get(socketId)
   
-          user && skt.emit('userInfo', { user })
+          user && clientListSocket.emit(USER.UPDATE, { user })
         })
 
-        io.sockets.in(updatedDbRoom.hash).emit('startGame', { room: updatedDbRoom })
+        io.sockets.in(updatedDbRoom.hash).emit(GAME.START, { room: updatedDbRoom })
         
         setTimeout(async () => {
           const finalRoom = await roomService.getByHash(data.room)
-          const podium = finalRoom.playerList.sort((a: PlayerProps, b: PlayerProps) => {
+
+          if (!finalRoom) return 
+
+          const podium = finalRoom?.playerList?.sort((a: PlayerProps, b: PlayerProps) => {
             return a.points - b.points
           }).reverse().map((player: PlayerProps) => ({
             playerName: player.playerName,
@@ -67,15 +72,17 @@ const readyStatusChange = (
 
           const restartedRoom: any = await roomService.restartGame(finalRoom)
 
-          io.sockets.sockets.forEach((skt: any) => {
+          clientList.forEach((socketId: any) => {
             const restartedUser = restartedRoom.playerList.find((player: PlayerProps) => {
-              return player.socketId === socket.id
+              return player.socketId === socketId
             })
+
+            const clientListSocket = io.sockets.sockets.get(socketId)
   
-            restartedUser && skt.emit('userInfo', { user: restartedUser })
+            restartedUser && clientListSocket.emit(USER.UPDATE, { user: restartedUser })
           })
 
-          io.sockets.in(updatedDbRoom.hash).emit('endGame', { room: restartedRoom, podium: podium})
+          io.sockets.in(updatedDbRoom.hash).emit(GAME.END, { room: restartedRoom, podium: podium})
 
         }, currentRoom.matchDuration)
 
