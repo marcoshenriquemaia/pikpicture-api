@@ -12,13 +12,16 @@ class RoomService {
         this.roomRepository = new _abstract_1.default({ model: deps.models.Room });
         this.deps = deps;
     }
-    async create(req) {
+    async create(req, roomQueue) {
         const { playerName, userId } = req.body;
         const hash = (0, generateToken_1.default)(6);
         const room = await this.roomRepository.create({
             hash,
             owner: { playerName, userId },
         });
+        roomQueue.createQueue(`play_${hash}`, { concurrent: 1, interval: 100 });
+        roomQueue.createQueue(`readyStatusChange_${hash}`);
+        roomQueue.createQueue(`joinRoom_${hash}`);
         return room;
     }
     async restartGame(room) {
@@ -75,7 +78,7 @@ class RoomService {
         return await this.roomRepository.update({
             _id: room._id,
         }, {
-            currentCard: (0, getCard_1.default)(room),
+            currentCard: await (0, getCard_1.default)(room),
             playerList: newPlayerList.sort((a, b) => {
                 return a.points - b.points;
             }).reverse(),
@@ -131,7 +134,7 @@ class RoomService {
             throw new AppError_1.default("Not found", 404);
         if (currentRoom.started)
             throw new AppError_1.default("The game is already started", 401);
-        if (currentRoom.playerList.length >= 10)
+        if (currentRoom.playerList.length >= 100)
             throw new AppError_1.default("Full room", 403);
         if (currentRoom.playerList.some((item) => item.userId === player.userId))
             return false;
@@ -144,6 +147,9 @@ class RoomService {
         }, {
             returnOriginal: false,
         });
+    }
+    async delete(_id) {
+        return await this.roomRepository.delete(_id);
     }
     async update(criteria, data) {
         return await this.roomRepository.update(criteria, data);

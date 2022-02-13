@@ -10,21 +10,26 @@ const { cardList } = JSON.parse(fs_1.default.readFileSync(path_1.default.join(__
     flag: "r",
 }));
 const getCard = (room) => {
-    const roomCards = [room.currentCard, ...room.playerList.map((player) => player.card)];
-    let found = false;
-    let foundedCard;
-    while (!found) {
-        const randomNumber = Math.floor(Math.random() * cardList.length);
-        const card = cardList[randomNumber];
-        const foundEqual = roomCards.some((item => {
-            const cardListStringfy = JSON.stringify(item.map((c) => c.category));
-            return JSON.stringify(card.map((c) => c.category)) === cardListStringfy;
-        }));
-        if (!foundEqual) {
-            foundedCard = card;
-            found = true;
+    return new Promise((resolver) => {
+        const roomCards = [
+            room.currentCard,
+            ...room.playerList.map((player) => player.card),
+        ];
+        let found = false;
+        let foundedCard;
+        while (!found) {
+            const randomNumber = Math.floor(Math.random() * cardList.length);
+            const card = cardList[randomNumber];
+            const foundEqual = roomCards.some((item) => {
+                const cardListStringfy = JSON.stringify(item.map((c) => c.category));
+                return (JSON.stringify(card.map((c) => c.category)) === cardListStringfy);
+            });
+            if (!foundEqual) {
+                foundedCard = card;
+                found = true;
+            }
         }
-    }
-    return foundedCard;
+        resolver(foundedCard);
+    });
 };
 exports.default = getCard;
