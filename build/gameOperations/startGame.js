@@ -15,7 +15,8 @@ const startGame = ({ room }) => {
     const updatedPlayers = room.playerList.map((player, index) => {
         return {
             ...player,
-            card: cardList[cardIndexList[index + 1]]
+            card: cardList[cardIndexList[index + 1]],
+            roundsWon: []
         };
     });
     return {
@@ -25,7 +26,7 @@ const startGame = ({ room }) => {
             ...card,
             scale: (100 - Math.floor(Math.random() * 50)) / 100
         })),
-        hash: room.hash
+        hash: room.hash,
     };
 };
 exports.default = startGame;

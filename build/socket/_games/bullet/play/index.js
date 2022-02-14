@@ -5,20 +5,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("../../../../mock/events");
 const verifyPlay_1 = __importDefault(require("../../helpers/verifyPlay"));
-const catchingPlay = async ({ socket, io, currentRoom, roomService, queueResolver, tasks, play, }) => {
+const bulletPlay = async ({ socket, io, currentRoom, roomService, queueResolver, tasks, play, }) => {
     const roomHash = currentRoom.hash;
     const player = currentRoom.playerList.find((item) => {
         return item.socketId === socket.id;
     });
+    if (player.roundsWon.includes(currentRoom.gameInfo.round))
+        return await queueResolver();
+    console.log('Primeira vitoria');
     if (player.punishmentTime &&
         new Date(player.punishmentTime).getTime() > new Date().getTime())
         return await queueResolver(false);
     const won = (0, verifyPlay_1.default)({ play, currentCard: player.card, currentRoom });
-    console.log("tasks", tasks);
-    if (tasks > 1 && won) {
-        socket.emit(events_1.USER.ALMOST);
-        return await queueResolver(won);
-    }
     if (!won) {
         const updatedRoom = await roomService.miss({
             socketId: socket.id,
@@ -46,16 +44,26 @@ const catchingPlay = async ({ socket, io, currentRoom, roomService, queueResolve
         const updatedRoom = await roomService.won({
             socketId: socket.id,
             room: currentRoom,
+            keepCurrentCard: true,
+            keepPlayerCard: true
+        });
+        await roomService.setPlayerWonRound({
+            room: updatedRoom,
+            round: updatedRoom.gameInfo.round,
+            socketId: socket.id
         });
         const currentPlayer = updatedRoom.playerList.find((p) => p.socketId === socket.id);
-        io.sockets
-            .in(roomHash)
-            .emit(events_1.GAME.HIT, { room: updatedRoom, user: currentPlayer });
+        console.log('currentPlayer', currentPlayer);
+        // io.sockets
+        //   .in(roomHash)
+        //   .emit(GAME.HIT, { room: updatedRoom, user: currentPlayer });
         socket.emit(events_1.USER.HIT, {
             room: updatedRoom,
             user: currentPlayer,
+            keepMainCard: true,
+            showWonMessage: true
         });
     }
-    queueResolver && (await queueResolver(won));
+    await queueResolver();
 };
-exports.default = catchingPlay;
+exports.default = bulletPlay;

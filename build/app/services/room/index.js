@@ -13,10 +13,11 @@ class RoomService {
         this.deps = deps;
     }
     async create(req, roomQueue) {
-        const { playerName, userId } = req.body;
+        const { playerName, userId, gameMode } = req.body;
         const hash = (0, generateToken_1.default)(6);
         const room = await this.roomRepository.create({
             hash,
+            gameMode,
             owner: { playerName, userId },
         });
         roomQueue.createQueue(`play_${hash}`, { concurrent: 1, interval: 100 });
@@ -31,6 +32,7 @@ class RoomService {
                 card: [],
                 points: 0,
                 ready: false,
+                roundsWon: [],
             };
         });
         const restartedRoom = await this.roomRepository.update({
@@ -45,7 +47,7 @@ class RoomService {
         });
         return restartedRoom;
     }
-    async catching_miss({ socketId, room }) {
+    async miss({ socketId, room }) {
         const newPlayerList = room.playerList.map((player) => {
             if (player.socketId != socketId)
                 return player;
@@ -58,30 +60,73 @@ class RoomService {
         return await this.roomRepository.update({
             _id: room._id,
         }, {
-            playerList: newPlayerList.sort((a, b) => {
+            playerList: newPlayerList
+                .sort((a, b) => {
                 return a.points - b.points;
-            }).reverse(),
+            })
+                .reverse(),
         }, {
             returnOriginal: false,
         });
     }
-    async catching_won({ socketId, room }) {
+    async changeMainCard({ room }) {
+        return await this.roomRepository.update({
+            hash: room.hash,
+        }, {
+            currentCard: await (0, getCard_1.default)(room),
+        }, {
+            returnOriginal: false,
+        });
+    }
+    async setGameRound({ room, round }) {
+        return await this.roomRepository.update({
+            hash: room.hash,
+        }, {
+            gameInfo: {
+                ...room.gameInfo,
+                round
+            }
+        }, {
+            returnOriginal: true,
+        });
+    }
+    async setPlayerWonRound({ room, socketId, round }) {
+        const newPlayerList = room.playerList.map((player) => {
+            if (player.socketId != socketId)
+                return player;
+            return {
+                ...player,
+                roundsWon: [...player.roundsWon, round],
+            };
+        });
+        return await this.roomRepository.update({
+            hash: room.hash,
+        }, {
+            playerList: newPlayerList,
+        }, {
+            returnOriginal: false,
+        });
+    }
+    async won({ socketId, room, keepCurrentCard, keepPlayerCard, gameInfo, }) {
         const newPlayerList = room.playerList.map((player) => {
             if (player.socketId != socketId)
                 return player;
             return {
                 ...player,
                 points: player.points + 1,
-                card: room.currentCard,
+                card: keepPlayerCard ? player.card : room.currentCard,
+                gameInfo: gameInfo ? gameInfo : {},
             };
         });
         return await this.roomRepository.update({
             _id: room._id,
         }, {
-            currentCard: await (0, getCard_1.default)(room),
-            playerList: newPlayerList.sort((a, b) => {
+            currentCard: keepCurrentCard ? room.currentCard : await (0, getCard_1.default)(room),
+            playerList: newPlayerList
+                .sort((a, b) => {
                 return a.points - b.points;
-            }).reverse(),
+            })
+                .reverse(),
         }, {
             returnOriginal: false,
         });
