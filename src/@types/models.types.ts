@@ -25,6 +25,7 @@ export interface UserSchemaTypes {
   avatar: string
   verified: boolean
   email: string
+  name: string,
   victories: Array<VictoryTypes>
   createdAt: Date
 }

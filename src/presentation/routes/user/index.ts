@@ -5,7 +5,7 @@ import upsertRouter from "./upsert.routes"
 const userRouter = (deps: DepsTypes) => {
   const router = Router()
 
-  router.put('/upsert', upsertRouter(deps))
+  router.put('/login', upsertRouter(deps))
   
   return router
 }

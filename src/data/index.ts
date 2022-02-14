@@ -35,6 +35,7 @@ const configureDatabase = async ({
     avatar: { type: String, default: () => String(Math.floor(Math.random() * 11)) },
     deviceId: { type: String, required: true },
     email: { type: String },
+    name: { type: String },
     victories: [
       new Schema({
         gameMode: { type: String },
