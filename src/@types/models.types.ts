@@ -1,5 +1,10 @@
 import { Date } from "mongoose";
 
+export interface VictoryTypes {
+  gameMode: string
+  points: number
+}
+
 export interface RoomSchemaTypes {
   _id: string
   hash: string;
@@ -10,5 +15,16 @@ export interface RoomSchemaTypes {
   currentCard: any
   finalTime: Date | undefined,
   matchDuration: number
+  gameInfo: any
   createdAt: Date;
+}
+
+export interface UserSchemaTypes {
+  _id: string
+  deviceId: string
+  avatar: string
+  verified: boolean
+  email: string
+  victories: Array<VictoryTypes>
+  createdAt: Date
 }

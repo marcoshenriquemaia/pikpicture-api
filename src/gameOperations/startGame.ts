@@ -16,7 +16,8 @@ const startGame = ({ room }: StartGameProps) => {
   const updatedPlayers = room.playerList.map((player: PlayerProps, index: number) => {
     return {
       ...player,
-      card: cardList[cardIndexList[index + 1]]
+      card: cardList[cardIndexList[index + 1]],
+      roundsWon: []
     }
   })
   
@@ -27,7 +28,7 @@ const startGame = ({ room }: StartGameProps) => {
       ...card,
       scale: (100 - Math.floor(Math.random() * 50)) / 100
     })),
-    hash: room.hash
+    hash: room.hash,
   }
 }
 

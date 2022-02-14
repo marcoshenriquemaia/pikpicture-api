@@ -19,4 +19,10 @@ export interface PlayerProps {
   punishmentTime?: Date 
   punishmentTimeInSecond?: number 
   avatar: number
+  roundsWon: Array<number>
+}
+
+export interface GameInfoProps {
+  round?: number,
+  roundWinners?: Array<PlayerProps>
 }

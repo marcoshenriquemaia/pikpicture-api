@@ -4,8 +4,11 @@ import { DepsTypes } from "../../../presentation/types";
 import generageToken from "../../../utils/generateToken";
 import {
   Catching_wonProps,
+  ChangeMainCardProps,
   changeReadyStatusPlayer,
   JoinPlayerProps,
+  SetGameRoundProps,
+  SetPlayerWonRoundProps,
 } from "./types";
 import { PlayerProps } from "../../../@types/env.types";
 import getCard from "../../../gameOperations/getCard";
@@ -22,17 +25,18 @@ class RoomService {
   }
 
   async create(req: Request, roomQueue: RoomQueue) {
-    const { playerName, userId } = req.body;
+    const { playerName, userId, gameMode } = req.body;
     const hash = generageToken(6);
 
     const room = await this.roomRepository.create({
       hash,
+      gameMode,
       owner: { playerName, userId },
     });
 
-    roomQueue.createQueue(`play_${hash}`, { concurrent: 1, interval: 100 })
+    roomQueue.createQueue(`play_${hash}`, { concurrent: 1, interval: 100 });
     roomQueue.createQueue(`readyStatusChange_${hash}`);
-    roomQueue.createQueue(`joinRoom_${hash}`)
+    roomQueue.createQueue(`joinRoom_${hash}`);
 
     return room;
   }
@@ -44,6 +48,7 @@ class RoomService {
         card: [],
         points: 0,
         ready: false,
+        roundsWon: [],
       };
     });
 
@@ -65,7 +70,7 @@ class RoomService {
     return restartedRoom;
   }
 
-  async catching_miss({ socketId, room }: Catching_wonProps) {
+  async miss({ socketId, room }: Catching_wonProps) {
     const newPlayerList = room.playerList.map((player: PlayerProps) => {
       if (player.socketId != socketId) return player;
       return {
@@ -80,9 +85,11 @@ class RoomService {
         _id: room._id,
       },
       {
-        playerList: newPlayerList.sort((a: PlayerProps, b: PlayerProps) => {
-          return a.points - b.points
-        }).reverse(),
+        playerList: newPlayerList
+          .sort((a: PlayerProps, b: PlayerProps) => {
+            return a.points - b.points;
+          })
+          .reverse(),
       },
       {
         returnOriginal: false,
@@ -90,13 +97,73 @@ class RoomService {
     );
   }
 
-  async catching_won({ socketId, room }: Catching_wonProps) {
+  async changeMainCard({ room }: ChangeMainCardProps) {
+    return await this.roomRepository.update(
+      {
+        hash: room.hash,
+      },
+      {
+        currentCard: await getCard(room),
+      },
+      {
+        returnOriginal: false,
+      }
+    );
+  }
+
+  async setGameRound({ room, round }: SetGameRoundProps) {
+    return await this.roomRepository.update(
+      {
+        hash: room.hash,
+      },
+      {
+        gameInfo: {
+          ...room.gameInfo,
+          round
+        }
+      },
+      {
+        returnOriginal: true,
+      }
+    );
+  }
+
+  async setPlayerWonRound({ room, socketId, round }: SetPlayerWonRoundProps) {
+    const newPlayerList = room.playerList.map((player: PlayerProps) => {
+      if (player.socketId != socketId) return player;
+      return {
+        ...player,
+        roundsWon: [...player.roundsWon, round],
+      };
+    });
+
+    return await this.roomRepository.update(
+      {
+        hash: room.hash,
+      },
+      {
+        playerList: newPlayerList,
+      },
+      {
+        returnOriginal: false,
+      }
+    );
+  }
+
+  async won({
+    socketId,
+    room,
+    keepCurrentCard,
+    keepPlayerCard,
+    gameInfo,
+  }: Catching_wonProps) {
     const newPlayerList = room.playerList.map((player: PlayerProps) => {
       if (player.socketId != socketId) return player;
       return {
         ...player,
         points: player.points + 1,
-        card: room.currentCard,
+        card: keepPlayerCard ? player.card : room.currentCard,
+        gameInfo: gameInfo ? gameInfo : {},
       };
     });
 
@@ -105,10 +172,12 @@ class RoomService {
         _id: room._id,
       },
       {
-        currentCard: await getCard(room),
-        playerList: newPlayerList.sort((a: PlayerProps, b: PlayerProps) => {
-          return a.points - b.points
-        }).reverse(),
+        currentCard: keepCurrentCard ? room.currentCard : await getCard(room),
+        playerList: newPlayerList
+          .sort((a: PlayerProps, b: PlayerProps) => {
+            return a.points - b.points;
+          })
+          .reverse(),
       },
       {
         returnOriginal: false,
@@ -132,11 +201,12 @@ class RoomService {
         hash: room?.hash,
       },
       {
-        playerList: room.playerList?.filter(
-          (player: PlayerProps) => player.socketId !== socketId
-        ).sort((a: PlayerProps, b: PlayerProps) => {
-          return a.points - b.points
-        }).reverse(),
+        playerList: room.playerList
+          ?.filter((player: PlayerProps) => player.socketId !== socketId)
+          .sort((a: PlayerProps, b: PlayerProps) => {
+            return a.points - b.points;
+          })
+          .reverse(),
       },
       {
         returnOriginal: false,
@@ -213,8 +283,8 @@ class RoomService {
     );
   }
 
-  async delete(_id: string){
-    return await this.roomRepository.delete(_id)
+  async delete(_id: string) {
+    return await this.roomRepository.delete(_id);
   }
 
   async update(criteria: any, data: any) {

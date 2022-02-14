@@ -20,5 +20,7 @@ export const GAME = {
   PLAY: 'game:play',
   PUNISHMENT_END: 'game:punishment_end',
   MISS: 'game:miss',
-  HIT: 'game:hit'
+  HIT: 'game:hit',
+  UPDATE_MAIN_CARD: 'game:update_main_card',
+  TIME: 'game:time'
 }

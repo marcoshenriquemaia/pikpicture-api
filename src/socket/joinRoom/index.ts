@@ -18,7 +18,8 @@ const joinRoom = (deps: DepsTypes, socket: any, roomQueue: RoomQueue, io: any) =
         ready: false,
         socketId: socket.id,
         points: 0,
-        avatar: currentRoom.playerList.length
+        avatar: currentRoom.playerList.length,
+        roundsWon: []
       }
 
       const updatedRoom: any = await roomService.joinPlayer({ room: data.room, player: newUser })
