@@ -18,6 +18,7 @@ const catchingStart = async ({ updatedRoom, roomService, io, data, currentRoom, 
         const clientListSocket = io.sockets.sockets.get(socketId);
         user && clientListSocket.emit(events_1.USER.UPDATE, { user });
     });
+    io.sockets.in(data.room).emit(events_1.GAME.TIME, { time: updatedDbRoom.matchDuration });
     io.sockets.in(updatedDbRoom.hash).emit(events_1.GAME.START);
     io.sockets
         .in(updatedDbRoom.hash)

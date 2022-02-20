@@ -65,6 +65,7 @@ const bulletStart = async ({
       io.sockets
         .in(data.room)
         .emit(GAME.UPDATE_MAIN_CARD, { mainCard: room.currentCard });
+        
       io.sockets.in(data.room).emit(GAME.TIME, { time });
 
       return new Promise((resolver) => {

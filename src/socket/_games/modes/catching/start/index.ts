@@ -39,6 +39,7 @@ const catchingStart = async ({
     user && clientListSocket.emit(USER.UPDATE, { user });
   });
 
+  io.sockets.in(data.room).emit(GAME.TIME, { time: updatedDbRoom.matchDuration });
   io.sockets.in(updatedDbRoom.hash).emit(GAME.START);
   io.sockets
     .in(updatedDbRoom.hash)
