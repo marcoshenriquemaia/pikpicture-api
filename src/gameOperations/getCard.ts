@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { PlayerProps } from "../@types/env.types";
 import { RoomSchemaTypes } from "../@types/models.types";
-import catchingPlay from "../socket/_games/catching/play";
+import catchingPlay from "../socket/_games/modes/catching/play";
 
 const { cardList } = JSON.parse(
   fs.readFileSync(path.join(__dirname, "../mock/cardList.json"), {

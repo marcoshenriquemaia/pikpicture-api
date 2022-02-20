@@ -14,6 +14,7 @@ const configureDatabase = async ({ ENV, }) => {
         finalTime: { type: Date, default: undefined },
         matchDuration: { type: Number, default: 1000 * 60 * 3 },
         gameInfo: { type: Object, default: {} },
+        vote: { type: Array, default: [] },
         createdAt: { type: Date, default: Date.now },
     });
     const UserSchema = new mongoose_1.Schema({

@@ -1,7 +1,7 @@
-import catchingPlay from "./catching/play";
-import catchingStart from "./catching/start";
-import bulletPlay from "./bullet/play";
-import bulletStart from "./bullet/start";
+import catchingPlay from "./modes/catching/play";
+import catchingStart from "./modes/catching/start";
+import bulletPlay from "./modes/bullet/play";
+import bulletStart from "./modes/bullet/start";
 
 interface DicGamesProps {
   catching: Function

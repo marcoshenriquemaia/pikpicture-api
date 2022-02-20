@@ -1,8 +1,8 @@
-import { PlayerProps } from "../../../../@types/env.types";
-import { RoomSchemaTypes } from "../../../../@types/models.types";
-import RoomService from "../../../../app/services/room";
-import { GAME, USER } from "../../../../mock/events";
-import verifyPlay from "../../helpers/verifyPlay";
+import { PlayerProps } from "../../../../../@types/env.types";
+import { RoomSchemaTypes } from "../../../../../@types/models.types";
+import RoomService from "../../../../../app/services/room";
+import { GAME, USER } from "../../../../../mock/events";
+import verifyPlay from "../../../helpers/verifyPlay";
 
 export interface PlayModeProps {
   socket: any;
@@ -23,7 +23,7 @@ const catchingPlay = async ({
   tasks,
   play,
 }: PlayModeProps) => {
-  const roomHash = currentRoom.hash
+  const roomHash = currentRoom.hash;
   const player = currentRoom.playerList.find((item: PlayerProps) => {
     return item.socketId === socket.id;
   });
@@ -35,8 +35,6 @@ const catchingPlay = async ({
     return await queueResolver(false);
 
   const won = verifyPlay({ play, currentCard: player.card, currentRoom });
-
-  console.log("tasks", tasks);
 
   if (tasks > 1 && won) {
     socket.emit(USER.ALMOST);
@@ -59,14 +57,12 @@ const catchingPlay = async ({
 
       io.sockets
         .in(roomHash)
-        .emit(GAME.PUNISHMENT_END, { room: currentRoom });
+        .emit(GAME.PLAYERS, { playerList: currentRoom.playerList });
+
       socket.emit(USER.PUNISHMENT_END, {
-        room: currentRoom,
         user: currentPlayer,
       });
     }, 3000);
-
-    console.log("catching_miss");
 
     io.sockets.in(roomHash).emit(GAME.MISS, { room: updatedRoom });
     socket.emit(USER.MISS, {
@@ -85,11 +81,19 @@ const catchingPlay = async ({
       (p: PlayerProps) => p.socketId === socket.id
     );
 
+    socket.broadcast.to(roomHash).emit(GAME.HIT, { user: currentPlayer });
+
     io.sockets
       .in(roomHash)
-      .emit(GAME.HIT, { room: updatedRoom, user: currentPlayer });
-    socket.emit(USER.HIT, {
-      room: updatedRoom,
+      .emit(GAME.PLAYERS, { playerList: updatedRoom.playerList });
+
+    io.sockets
+      .in(roomHash)
+      .emit(GAME.UPDATE_MAIN_CARD, { mainCard: updatedRoom.currentCard });
+
+    socket.emit(USER.HIT, {});
+
+    socket.emit(USER.UPDATE, {
       user: currentPlayer,
     });
   }

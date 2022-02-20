@@ -1,5 +1,5 @@
 import RoomService from "../../app/services/room"
-import { ROOM, USER } from "../../mock/events"
+import { GAME, ROOM, USER } from "../../mock/events"
 import { DepsTypes } from "../../presentation/types"
 import RoomQueue from "../../queue"
 
@@ -10,7 +10,7 @@ const joinRoom = (deps: DepsTypes, socket: any, roomQueue: RoomQueue, io: any) =
       const currentRoom: any = await roomService.getByHash(data.room)
 
       if (currentRoom.started) return await queueResolver()
-
+      
       const newUser = {
         playerName: data.playerName,
         userId: data.userId,
@@ -21,11 +21,12 @@ const joinRoom = (deps: DepsTypes, socket: any, roomQueue: RoomQueue, io: any) =
         avatar: currentRoom.playerList.length,
         roundsWon: []
       }
-
+      
       const updatedRoom: any = await roomService.joinPlayer({ room: data.room, player: newUser })
 
       updatedRoom && await socket.join(data.room)
-      updatedRoom && await io.sockets.in(data.room).emit(ROOM.JOIN, updatedRoom )
+      updatedRoom && await socket.broadcast.to(data.room).emit(ROOM.JOIN, { user: newUser} )
+      updatedRoom && await io.sockets.in(data.room).emit(GAME.PLAYERS, { playerList: updatedRoom.playerList} )
       updatedRoom && await socket.emit(USER.UPDATE, { user: newUser } )
       queueResolver && updatedRoom && await queueResolver()
     })

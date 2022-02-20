@@ -1,6 +1,7 @@
 import { connect, Schema, model, Model } from "mongoose";
 import { EnvTypes } from "../@types/env.types";
 import { RoomSchemaTypes, UserSchemaTypes } from "../@types/models.types";
+import modeList from "../mock/modeList";
 
 export interface ModelsType {
   ENV: EnvTypes;
@@ -28,6 +29,7 @@ const configureDatabase = async ({
     finalTime: { type: Date, default: undefined },
     matchDuration: { type: Number, default: 1000 * 60 * 3 },
     gameInfo: { type: Object, default: {} },
+    vote: { type: Array, default: [] },
     createdAt: { type: Date, default: Date.now },
   });
 

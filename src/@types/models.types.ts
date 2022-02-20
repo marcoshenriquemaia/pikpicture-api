@@ -16,6 +16,7 @@ export interface RoomSchemaTypes {
   finalTime: Date | undefined,
   matchDuration: number
   gameInfo: any
+  vote: any
   createdAt: Date;
 }
 

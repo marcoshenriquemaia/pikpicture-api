@@ -30,8 +30,10 @@ const readyStatusChange = (deps, socket, roomQueue, io) => {
                 roomService,
                 io,
                 data,
-                currentRoom
+                currentRoom,
+                socket
             });
+            await queueResolver();
         });
     };
 };

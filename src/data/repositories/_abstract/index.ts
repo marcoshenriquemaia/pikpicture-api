@@ -1,4 +1,5 @@
 import { Model } from "mongoose"
+import { RoomSchemaTypes } from "../../../@types/models.types"
 import AppError from "../../../errors/AppError"
 
 export default class Repository {
@@ -43,7 +44,7 @@ export default class Repository {
     }
   }
 
-  async update(criteria: any, newObject: any, settings?: any, populate?: string) {
+  async update(criteria: any, newObject: any, settings?: any, populate?: string): Promise<any> {
     try {
       return await this._model
         .findOneAndUpdate(criteria, newObject, settings)

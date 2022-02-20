@@ -25,6 +25,16 @@ class RoomService {
         roomQueue.createQueue(`joinRoom_${hash}`);
         return room;
     }
+    async changeGameMode(req) {
+        const { room, gameMode } = req.body;
+        return await this.roomRepository.update({
+            hash: room
+        }, {
+            gameMode,
+        }, {
+            returnOriginal: false
+        });
+    }
     async restartGame(room) {
         const newPlayerList = room.playerList.map((player) => {
             return {
@@ -69,7 +79,7 @@ class RoomService {
             returnOriginal: false,
         });
     }
-    async changeMainCard({ room }) {
+    async changeMainCard({ room, }) {
         return await this.roomRepository.update({
             hash: room.hash,
         }, {
@@ -84,8 +94,8 @@ class RoomService {
         }, {
             gameInfo: {
                 ...room.gameInfo,
-                round
-            }
+                round,
+            },
         }, {
             returnOriginal: true,
         });

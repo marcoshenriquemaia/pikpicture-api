@@ -38,14 +38,16 @@ const readyStatusChange = (
         );
 
         if (readyQuantity < updatedRoom.playerList.length) return await queueResolver()
-        
         dicGameStart[currentRoom.gameMode]({
           updatedRoom,
           roomService,
           io,
           data,
-          currentRoom
+          currentRoom,
+          socket
         })
+
+        await queueResolver()
       }
     );
   };

@@ -7,7 +7,13 @@ const room_1 = __importDefault(require("../../app/services/room"));
 const events_1 = require("../../mock/events");
 const disconnectRoom = (deps, socket, roomQueue, io) => {
     const roomService = new room_1.default(deps);
-    return async () => {
+    return async ({ room: roomHash }) => {
+        const currentRoom = await roomService.getByHash(roomHash);
+        if (!currentRoom)
+            return;
+        const user = currentRoom.playerList.find((player) => {
+            return player.socketId === socket.id;
+        });
         const room = await roomService.disconnectPlayer(socket.id);
         if (!room)
             return;
@@ -18,7 +24,7 @@ const disconnectRoom = (deps, socket, roomQueue, io) => {
             roomQueue.removeQueue(`joinRoom_${room.hash}`);
         }
         await socket.leave(room.hash);
-        await socket.broadcast.to(room.hash).emit(events_1.USER.DISCONNECT, room);
+        await socket.broadcast.to(room.hash).emit(events_1.USER.DISCONNECT, { room, user });
         await socket.disconnect();
     };
 };

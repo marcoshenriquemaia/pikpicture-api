@@ -3,7 +3,7 @@ import RoomService from "../../app/services/room"
 import { GAME } from "../../mock/events"
 import { DepsTypes } from "../../presentation/types"
 import RoomQueue from "../../queue"
-import { DataPlayTypes } from "./catching/play/types"
+import { DataPlayTypes } from "./modes/catching/play/types"
 import dicGames from "./dicGames"
 
 const games = (socket: any, deps: DepsTypes, io: any, roomQueue: RoomQueue) => {

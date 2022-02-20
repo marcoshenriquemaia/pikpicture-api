@@ -24,7 +24,8 @@ const joinRoom = (deps, socket, roomQueue, io) => {
             };
             const updatedRoom = await roomService.joinPlayer({ room: data.room, player: newUser });
             updatedRoom && await socket.join(data.room);
-            updatedRoom && await io.sockets.in(data.room).emit(events_1.ROOM.JOIN, updatedRoom);
+            updatedRoom && await socket.broadcast.to(data.room).emit(events_1.ROOM.JOIN, { user: newUser });
+            updatedRoom && await io.sockets.in(data.room).emit(events_1.GAME.PLAYERS, { playerList: updatedRoom.playerList });
             updatedRoom && await socket.emit(events_1.USER.UPDATE, { user: newUser });
             queueResolver && updatedRoom && await queueResolver();
         });

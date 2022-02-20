@@ -41,6 +41,22 @@ class RoomService {
     return room;
   }
 
+  async changeGameMode(req: Request) {
+    const { room, gameMode } = req.body
+
+    return await this.roomRepository.update(
+      {
+        hash: room
+      },
+      {
+        gameMode,
+      },
+      {
+        returnOriginal: false
+      }
+    );
+  }
+
   async restartGame(room: RoomSchemaTypes) {
     const newPlayerList = room.playerList.map((player: PlayerProps) => {
       return {
@@ -97,7 +113,9 @@ class RoomService {
     );
   }
 
-  async changeMainCard({ room }: ChangeMainCardProps) {
+  async changeMainCard({
+    room,
+  }: ChangeMainCardProps): Promise<RoomSchemaTypes> {
     return await this.roomRepository.update(
       {
         hash: room.hash,
@@ -119,8 +137,8 @@ class RoomService {
       {
         gameInfo: {
           ...room.gameInfo,
-          round
-        }
+          round,
+        },
       },
       {
         returnOriginal: true,

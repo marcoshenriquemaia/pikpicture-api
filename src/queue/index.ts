@@ -32,8 +32,6 @@ class RoomQueue {
     
     if (!queue) return;
 
-    console.log('hash', queue.tasks.size)
-
     queue.enqueue(
       () => new Promise((resolver) => func(resolver, queue.tasks.size + 1))
     );

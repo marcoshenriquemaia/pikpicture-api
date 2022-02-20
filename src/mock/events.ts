@@ -22,5 +22,7 @@ export const GAME = {
   MISS: 'game:miss',
   HIT: 'game:hit',
   UPDATE_MAIN_CARD: 'game:update_main_card',
-  TIME: 'game:time'
+  TIME: 'game:time',
+  PLAYERS: 'game:players',
+  MODE: 'game:mode'
 }

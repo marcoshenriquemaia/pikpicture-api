@@ -1,3 +1,4 @@
+import { PlayerProps } from "../../@types/env.types";
 import RoomService from "../../app/services/room";
 import { USER } from "../../mock/events";
 import { DepsTypes } from "../../presentation/types";
@@ -7,11 +8,23 @@ const disconnect = (deps: DepsTypes, socket: any, roomQueue: RoomQueue, io: any)
   const roomService = new RoomService(deps);
 
   return async () => {
+    const roomList = await roomService.list();
+
     const room = await roomService.disconnectPlayer(socket.id);
 
     if (!room) return;
-    
-    console.log('Disconnect')
+
+    const currentRoom = roomList.find((room) => {
+      return room.playerList.some((player: PlayerProps) => {
+        return player.socketId === socket.id;
+      });
+    });
+
+    if (!currentRoom) return
+
+    const user = currentRoom.playerList.find((player: PlayerProps) => {
+      return player.socketId === socket.id
+    })
     
     if (!room.playerList.length){
       await roomService.delete(room._id)
@@ -21,7 +34,7 @@ const disconnect = (deps: DepsTypes, socket: any, roomQueue: RoomQueue, io: any)
     }
 
     await socket.leave(room.hash);
-    await socket.broadcast.to(room.hash).emit(USER.DISCONNECT, room);
+    await socket.broadcast.to(room.hash).emit(USER.DISCONNECT, { room, user });
   };
 };
 
