@@ -81,17 +81,18 @@ const catchingPlay = async ({
       (p: PlayerProps) => p.socketId === socket.id
     );
 
-    socket.broadcast.to(roomHash).emit(GAME.HIT, { user: currentPlayer });
-
+    
     io.sockets
-      .in(roomHash)
-      .emit(GAME.PLAYERS, { playerList: updatedRoom.playerList });
-
+    .in(roomHash)
+    .emit(GAME.PLAYERS, { playerList: updatedRoom.playerList });
+    
     io.sockets
-      .in(roomHash)
-      .emit(GAME.UPDATE_MAIN_CARD, { mainCard: updatedRoom.currentCard });
-
+    .in(roomHash)
+    .emit(GAME.UPDATE_MAIN_CARD, { mainCard: updatedRoom.currentCard });
+    
     socket.emit(USER.HIT, {});
+    
+    socket.broadcast.to(roomHash).emit(GAME.HIT, { user: currentPlayer });
 
     socket.emit(USER.UPDATE, {
       user: currentPlayer,

@@ -45,7 +45,6 @@ const catchingPlay = async ({ socket, io, currentRoom, roomService, queueResolve
             room: currentRoom,
         });
         const currentPlayer = updatedRoom.playerList.find((p) => p.socketId === socket.id);
-        socket.broadcast.to(roomHash).emit(events_1.GAME.HIT, { user: currentPlayer });
         io.sockets
             .in(roomHash)
             .emit(events_1.GAME.PLAYERS, { playerList: updatedRoom.playerList });
@@ -53,6 +52,7 @@ const catchingPlay = async ({ socket, io, currentRoom, roomService, queueResolve
             .in(roomHash)
             .emit(events_1.GAME.UPDATE_MAIN_CARD, { mainCard: updatedRoom.currentCard });
         socket.emit(events_1.USER.HIT, {});
+        socket.broadcast.to(roomHash).emit(events_1.GAME.HIT, { user: currentPlayer });
         socket.emit(events_1.USER.UPDATE, {
             user: currentPlayer,
         });
