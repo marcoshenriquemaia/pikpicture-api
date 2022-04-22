@@ -2,6 +2,8 @@ export const ROOM = {
   JOIN: 'room:join',
   LEAVE: 'room:leave',
   STATUS: 'room:status',
+  MODE: 'room:mode',
+  CHANGE_MODE: 'room:change_mode'
 }
 
 export const USER = {

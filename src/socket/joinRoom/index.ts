@@ -7,7 +7,7 @@ const joinRoom = (deps: DepsTypes, socket: any, roomQueue: RoomQueue, io: any) =
   const roomService = new RoomService(deps)
   return async (data: any) => {
     roomQueue.enqueue(`joinRoom_${data.room}`, async (queueResolver: Function) => {
-      const currentRoom: any = await roomService.getByHash(data.room)
+    const currentRoom: any = await roomService.getByHash(data.room)
 
       if (currentRoom.started) return await queueResolver()
       

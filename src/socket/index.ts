@@ -5,6 +5,7 @@ import { DepsTypes } from '../presentation/types'
 import disconnect from './disconnect'
 import disconnectRoom from './disconnectRoom'
 import joinRoom from './joinRoom'
+import modeRoom from './mode'
 import readyStatusChange from './readyStatusChange'
 import games from './_games'
 
@@ -20,6 +21,7 @@ const configureSocket = (app: any, deps: DepsTypes) => {
     socket.on(ROOM.JOIN, joinRoom(deps, socket, deps.roomQueue, io))
     socket.on(ROOM.STATUS, readyStatusChange(deps, socket, deps.roomQueue, io))
     socket.on(ROOM.LEAVE, disconnectRoom(deps, socket, deps.roomQueue, io))
+    socket.on(ROOM.MODE, modeRoom(deps, socket, deps.roomQueue, io))
     socket.on('disconnect', disconnect(deps, socket, deps.roomQueue, io))
     games(socket, deps, io, deps.roomQueue)
   })
