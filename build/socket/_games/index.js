@@ -11,7 +11,15 @@ const games = (socket, deps, io, roomQueue) => {
     socket.on(events_1.GAME.PLAY, ({ room, play }) => roomQueue.enqueue(`play_${room}`, async (queueResolver, tasks) => {
         const currentRoom = await roomService.getByHash(room);
         const gameMode = currentRoom.gameMode;
-        dicGames_1.default[gameMode]({ socket, io, currentRoom, roomService, queueResolver, tasks, play });
+        dicGames_1.default[gameMode]({
+            socket,
+            io,
+            currentRoom,
+            roomService,
+            queueResolver,
+            tasks,
+            play,
+        });
     }));
 };
 exports.default = games;

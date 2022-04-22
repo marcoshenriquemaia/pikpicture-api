@@ -9,9 +9,9 @@ const endGame_1 = __importDefault(require("../../../endGame"));
 const bulletStart = async ({ updatedRoom, roomService, io, data, currentRoom, }) => {
     const newRoom = (0, startGame_1.default)({ room: updatedRoom });
     const roundTimes = [
-        8000, 8000, 8000, 6000, 6000, 5000, 4000, 3000, 3000, 3000, 3000, 3000,
-        3000, 3000, 3000, 3000, 2000, 2000, 2000, 1000, 1000, 1000, 1000, 1000,
-        1000, 1000,
+        8000, 8000, 8000, 6000, 6000, 5000, 5000, 5000, 5000, 5000, 4000, 4000,
+        4000, 4000, 4000, 4000, 4000, 3000, 3000, 3000, 3000, 3000, 3000, 3000,
+        2000, 2000,
     ];
     const gameTime = roundTimes.reduce((acc, time) => {
         return acc + time;
