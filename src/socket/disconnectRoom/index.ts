@@ -29,7 +29,7 @@ const disconnectRoom = (deps: DepsTypes, socket: any, roomQueue: RoomQueue, io: 
 
     console.log({ room, currentRoom })
 
-    await io.sockets.in(room.hash).emit(GAME.PLAYERS, { playerList: currentRoom.playerList });
+    await io.sockets.in(room.hash).emit(GAME.PLAYERS, { playerList: room.playerList} );
     await socket.leave(room.hash);
     await socket.disconnect()
   };
