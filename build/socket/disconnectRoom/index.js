@@ -24,7 +24,7 @@ const disconnectRoom = (deps, socket, roomQueue, io) => {
             roomQueue.removeQueue(`joinRoom_${room.hash}`);
         }
         await socket.leave(room.hash);
-        await socket.broadcast.to(room.hash).emit(events_1.USER.DISCONNECT, { room, user });
+        await socket.broadcast.to(room.hash).emit(events_1.GAME.PLAYERS, { playerList: currentRoom.playerList });
         await socket.disconnect();
     };
 };

@@ -1,6 +1,6 @@
 import { PlayerProps } from "../../@types/env.types";
 import RoomService from "../../app/services/room";
-import { USER } from "../../mock/events";
+import { GAME, USER } from "../../mock/events";
 import { DepsTypes } from "../../presentation/types";
 import RoomQueue from "../../queue";
 
@@ -28,7 +28,7 @@ const disconnectRoom = (deps: DepsTypes, socket: any, roomQueue: RoomQueue, io: 
     }
 
     await socket.leave(room.hash);
-    await socket.broadcast.to(room.hash).emit(USER.DISCONNECT, { room, user });
+    await socket.broadcast.to(room.hash).emit(GAME.PLAYERS, { playerList: currentRoom.playerList });
     await socket.disconnect()
   };
 };
